@@ -10,4 +10,5 @@ export interface EventWithRelations extends Event {
     event_add_ons: (EventAddOn & {   // Adds array of event add-ons with their add-on details
         add_ons: AddOn;
     })[];
+    images?: string[];
 }

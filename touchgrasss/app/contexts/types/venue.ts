@@ -11,4 +11,5 @@ export interface Venue {
     phone: string | null;
     website: string | null;
     created_at: string;  // ISO date string
+    images?: string[];
 }

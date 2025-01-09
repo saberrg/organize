@@ -27,9 +27,9 @@ export function EventList() {
   if (isMobile) {
     return (
       <div className="h-[calc(100vh-4rem)] snap-y snap-mandatory overflow-y-auto">
-        {events.map((event) => (
+        {events.map((event, index) => (
           <div key={event.id} className="h-full snap-start snap-always">
-            <EventCard event={event} />
+            <EventCard event={event} featured={index === 0} />
           </div>
         ))}
       </div>

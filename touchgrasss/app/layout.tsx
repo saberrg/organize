@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import Link from 'next/link'
 import { Menu } from 'lucide-react'
+import { VenueProvider } from "./contexts/venueContext";
 
 const inter = Inter({ subsets: ['latin'] })
 const playfair = Playfair_Display({ subsets: ['latin'] })
@@ -31,58 +32,60 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-[#23243B]/95 text-white">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-20">
-              {/* Logo */}
-              <Link href="/" className={`${playfair.className} text-3xl font-bold`}>
-                Dore Hami
-              </Link>
-
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center gap-8">
-                <Link href="/venues" className="hover:text-yellow-300 transition-colors">
-                  Venues
-                </Link>
-                <Link href="/plan-event" className="hover:text-yellow-300 transition-colors">
-                  Plan Event
-                </Link>
-                <Link href="/about" className="hover:text-yellow-300 transition-colors">
-                  About
+        <VenueProvider>
+          {/* Header */}
+          <header className="fixed top-0 left-0 right-0 z-50 bg-[#23243B]/95 text-white">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center justify-between h-20">
+                {/* Logo */}
+                <Link href="/" className={`${playfair.className} text-3xl font-bold`}>
+                  Dore Hami
                 </Link>
 
-                <Link href="/account" className="hover:text-yellow-300 transition-colors">
-                  Account
-                </Link>
+                {/* Desktop Navigation */}
+                <nav className="hidden md:flex items-center gap-8">
+                  <Link href="/venues" className="hover:text-yellow-300 transition-colors">
+                    Venues
+                  </Link>
+                  <Link href="/plan-event" className="hover:text-yellow-300 transition-colors">
+                    Plan Event
+                  </Link>
+                  <Link href="/about" className="hover:text-yellow-300 transition-colors">
+                    About
+                  </Link>
 
-                <Link 
-                  href="/fa" 
-                  className="px-4 py-2 bg-[#4A0404] rounded hover:bg-[#4A0404]/80 transition-colors"
-                >
-                  فارسی
-                </Link>
-              </nav>
+                  <Link href="/account" className="hover:text-yellow-300 transition-colors">
+                    Account
+                  </Link>
 
-              {/* Mobile Menu Button */}
-              <button className="md:hidden p-2">
-                <Menu className="w-6 h-6" />
-              </button>
+                  <Link 
+                    href="/fa" 
+                    className="px-4 py-2 bg-[#4A0404] rounded hover:bg-[#4A0404]/80 transition-colors"
+                  >
+                    فارسی
+                  </Link>
+                </nav>
+
+                {/* Mobile Menu Button */}
+                <button className="md:hidden p-2">
+                  <Menu className="w-6 h-6" />
+                </button>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {/* Main Content */}
-        <main className="min-h-screen pt-20">
-          {children}
-        </main>
+          {/* Main Content */}
+          <main className="min-h-screen pt-20">
+            {children}
+          </main>
 
-        {/* Footer */}
-        <footer className="bg-[#23243B] text-white py-6">
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-sm">© 2025 Dore Hami</p>
-          </div>
-        </footer>
+          {/* Footer */}
+          <footer className="bg-[#23243B] text-white py-6">
+            <div className="container mx-auto px-4 text-center">
+              <p className="text-sm">© 2025 Dore Hami</p>
+            </div>
+          </footer>
+        </VenueProvider>
       </body>
     </html>
   )

@@ -10,13 +10,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
 import { handleVenueSubmission } from '@/lib/venue-handler'
-import PlaceSearch from './maps/placeAPI'
+import PlaceSearch from './placeAPI'
 import { Venue } from '@/app/types/venue'
 import { User } from '@supabase/supabase-js'
 import { venueFormSchema, VenueFormValues, defaultVenueFormValues } from '@/app/types/venue'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
 
-export default function AddVenueForm({ user }: { user: User }) {
+export default function AddVenueForm() {
+  const [user, setUser] = React.useState<User | null>(null)
   const { toast } = useToast()
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -27,6 +29,22 @@ export default function AddVenueForm({ user }: { user: User }) {
     resolver: zodResolver(venueFormSchema),
     defaultValues: defaultVenueFormValues,
   })
+
+  React.useEffect(() => {
+    const supabase = createClient()
+    
+    // Check auth state
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+      setUser(user)
+    }
+    
+    checkUser()
+  }, [router])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -57,7 +75,7 @@ export default function AddVenueForm({ user }: { user: User }) {
     form.setValue('name', venueData.name || '');
     form.setValue('address', venueData.address || '');
     form.setValue('description', venueData.description || '');
-    form.setValue('contact_phone', venueData.contact_phone || '');
+    form.setValue('contact_phone', venueData.phone || '');
     
     // Handle images from API
     if (venueData.images && venueData.images.length > 0) {
@@ -140,6 +158,9 @@ export default function AddVenueForm({ user }: { user: User }) {
     }
   }
 
+  // Only render the form if we have a user
+  if (!user) return null
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

@@ -2,7 +2,7 @@
 
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import { useState } from 'react';
-import { Venue } from '@/app/types/venue';
+import { CreateVenue, Venue } from '@/app/types/venue';
 import { useVenues } from '@/app/contexts/venueContext';
 
 const libraries = ['places'];
@@ -26,7 +26,7 @@ interface PlaceDetails {
   }>;
 }
 
-const mapPlaceToVenue = async (place: any): Promise<Venue> => {
+const mapPlaceToVenue = async (place: any): Promise<CreateVenue> => {
   if (!place.name || !place.formattedAddress) {
     throw new Error('Missing required venue data');
   }
@@ -42,20 +42,17 @@ const mapPlaceToVenue = async (place: any): Promise<Venue> => {
   const utcDate = new Date(timestamp);
 
   return {
-    venue_id: crypto.randomUUID(),
     name: place.displayName?.text || place.name,
     address: place.formattedAddress,
     rental_rate_per_hour: 0,
-    capacity: 0,
-    amenities: [],
     description: place.editorial_summary?.overview || '',
     images: imageUrls,
-    contact_phone: place.formatted_phone_number || '',
-    contact_email: '',
-    contact_website: place.website || '',
+    phone: place.formatted_phone_number || '',
+    email: '',
+    website: place.website || '',
+    zip_code: place.address_components?.find((c: any) => c.types.includes('postal_code'))?.long_name || '',
+    city: place.address_components?.find((c: any) => c.types.includes('locality'))?.long_name || '',
     is_active: true,
-    created_at: utcDate.toISOString(),
-    updated_at: utcDate.toISOString()
   };
 };
 
@@ -65,7 +62,7 @@ interface PlaceSearchProps {
 }
 
 export default function PlaceSearch({ onPlaceSelect, className }: PlaceSearchProps) {
-  const { createVenue } = useVenue();
+  const { insertVenue } = useVenues();
   const [placeDetails, setPlaceDetails] = useState<PlaceDetails | null>(null);
   const [autocompleteInstance, setAutocompleteInstance] = useState<any>(null);
 
@@ -96,6 +93,8 @@ export default function PlaceSearch({ onPlaceSelect, className }: PlaceSearchPro
       
       // Get additional details including photos using Places API
       const placeDetails = await fetchPlaceDetails(place.place_id);
+
+      console.log("THE PLACE DETAILS:", placeDetails);
       
       // Combine the original place data with the additional details
       const combinedPlaceData = {

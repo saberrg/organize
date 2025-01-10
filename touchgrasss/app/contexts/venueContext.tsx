@@ -1,6 +1,8 @@
-import { createClient } from "@/utils/supabase/server";
+'use client'
+
+import { createClient } from "@/utils/supabase/client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { Venue } from "../types/venue";
+import { CreateVenue, Venue } from "../types/venue";
 
 interface VenueContextType {
     venues: Venue[];
@@ -12,16 +14,14 @@ interface VenueContextType {
     uploadVenueImage: (venueId: string, image: File) => Promise<string | null>;
 }
 
-type CreateVenue = Omit<Venue, 'id' | 'created_at'>;
-
 const VenueContext = createContext<VenueContextType | undefined>(undefined);
 
-export const VenueProvider = async ({ children }: { children: React.ReactNode }) => {
+export const VenueProvider = ({ children }: { children: React.ReactNode }) => {
     const [venues, setVenues] = useState<Venue[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
     
-    const supabase = await createClient();
+    const supabase = createClient();
 
     useEffect(() => {
         getVenues();

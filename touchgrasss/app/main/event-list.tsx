@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { Event } from "../contexts/types/event"
+import { Event } from "../types/event"
 import { FeaturedEvent } from "./featured-event"
 import { EventListItem } from "./event-list-item"
 import { EventCard } from "./event-card"

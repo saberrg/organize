@@ -1,6 +1,7 @@
+'use client'
 import { createClient } from "@/utils/supabase/server";
 import { createContext, useContext, useEffect, useState } from "react";
-import { EventWithRelations } from "./types/event-relations";
+import { EventWithRelations } from "../types/event-relations";
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
@@ -12,8 +13,8 @@ interface EventContextType {
     error: Error | null;
     getEvents: () => Promise<void>;
     insertEvent: (eventData: CreateEvent) => Promise<Event | null>; 
-    getEventImages: (eventId: string) => Promise<string[] | null>;
-    uploadEventImage: (eventId: string, image: File) => Promise<string | null>;
+    getEventFiles: (eventId: string) => Promise<string[] | null>;
+    uploadEventFiles: (eventId: string, files: { file: File; type: string; }[]) => Promise<{ path: string; type: string; }[]>;
 }
 
 export const EventProvider = async ({ children }: { children: React.ReactNode }) => {
@@ -43,14 +44,14 @@ export const EventProvider = async ({ children }: { children: React.ReactNode })
             if (error) throw error;
 
             // Fetch images for each event
-            const eventsWithImages = await Promise.all(
+            const eventsWithFiles = await Promise.all(
                 data.map(async (event) => {
-                    const images = await getEventImages(event.id);
-                    return { ...event, images } as EventWithRelations;
+                    const files = await getEventFiles(event.id);
+                    return { ...event, files } as EventWithRelations;
                 })
             );
 
-            setEvents(eventsWithImages);
+            setEvents(eventsWithFiles);
         } catch (err) {
             setError(err as Error);
         } finally {
@@ -92,7 +93,7 @@ export const EventProvider = async ({ children }: { children: React.ReactNode })
         }
     };
 
-    const getEventImages = async (eventId: string): Promise<string[]> => {
+    const getEventFiles = async (eventId: string): Promise<string[]> => {
         try {
             const { data, error } = await supabase.storage
                 .from('media')
@@ -115,32 +116,27 @@ export const EventProvider = async ({ children }: { children: React.ReactNode })
         }
     };
 
-    const uploadEventImage = async (eventId: string, file: File): Promise<string | null> => {
-        try {
-            setLoading(true);
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${crypto.randomUUID()}.${fileExt}`;
-            const filePath = `events/${eventId}/${fileName}`;
+    const uploadEventFiles = async (eventId: string, files: {file: File, type: string}[]) => {
+        const uploads = await Promise.all(
+            files.map(async ({ file, type }) => {
+                const fileExt = file.name.split('.').pop()
+                const fileName = `${Date.now()}.${fileExt}`
+                const filePath = `events/${eventId}/${fileName}`
 
-            const { data, error } = await supabase.storage
-                .from('media')
-                .upload(filePath, file);
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file)
 
-            if (error) throw error;
+                if (uploadError) throw uploadError
 
-            // Get the public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('media')
-                .getPublicUrl(filePath);
-
-            return publicUrl;
-        } catch (err) {
-            setError(err as Error);
-            return null;
-        } finally {
-            setLoading(false);
-        }
-    };
+                return {
+                    path: filePath,
+                    type
+                }
+            })
+        )
+        return uploads
+    }
 
     useEffect(() => {
         getEvents();
@@ -152,8 +148,8 @@ export const EventProvider = async ({ children }: { children: React.ReactNode })
         error,
         getEvents,
         insertEvent,
-        getEventImages,
-        uploadEventImage
+        getEventFiles,
+        uploadEventFiles
     };
 
     return (

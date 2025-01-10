@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { createContext, useContext, useEffect, useState } from "react";
-import { Venue } from "./types/venue";
+import { Venue } from "../types/venue";
 
 interface VenueContextType {
     venues: Venue[];

@@ -1,8 +1,8 @@
-import { Event } from "../contexts/types/event"
+import { Event } from "../types/event"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from 'lucide-react'
 import Image from "next/image"
-import { EventWithRelations } from "../contexts/types/event-relations";
+import { EventWithRelations } from "../types/event-relations";
 
 interface EventCardProps {
   event: EventWithRelations;

@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react'
-import { EventWithRelations } from "../contexts/types/event-relations"
+import { EventWithRelations } from "../types/event-relations"
 
 interface EventListItemProps {
   event: EventWithRelations

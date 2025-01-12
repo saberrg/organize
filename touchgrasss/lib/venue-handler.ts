@@ -67,6 +67,8 @@ async function uploadVenueMediaToSupabase(formData: FormData, venueName: string)
 // Handle form submission
 export async function handleVenueSubmission(formData: FormData) {
   try {
+
+    console.log("THE FORM DATA", formData)
     const venue = parseFormDataToVenue(formData);
     const insertedVenue = await insertVenueToSupabase(venue);
     

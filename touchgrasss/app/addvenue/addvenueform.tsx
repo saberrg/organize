@@ -3,7 +3,6 @@
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,6 +15,7 @@ import { User } from '@supabase/supabase-js'
 import { venueFormSchema, VenueFormValues, defaultVenueFormValues } from '@/app/types/venue'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import TagInput from './tag-fields'
 
 export default function AddVenueForm() {
   const [user, setUser] = React.useState<User | null>(null)
@@ -72,10 +72,27 @@ export default function AddVenueForm() {
   }
 
   const handlePlaceSelect = async (venueData: Partial<Venue>) => {
+    console.log("Incoming description:", venueData.description);
+    
+    // Ensure description is properly formatted as an array
+    const descriptionArray = Array.isArray(venueData.description) 
+      ? venueData.description 
+      : typeof venueData.description === 'string'
+        ? venueData.description.split(',')
+        : [];
+    
+    console.log("Formatted description array:", descriptionArray);
+    
+    // Set form values
     form.setValue('name', venueData.name || '');
     form.setValue('address', venueData.address || '');
-    form.setValue('description', venueData.description || '');
+    form.setValue('description', descriptionArray, { shouldValidate: true });  // Add shouldValidate option
     form.setValue('contact_phone', venueData.phone || '');
+    form.setValue('contact_email', venueData.email || '');
+    form.setValue('contact_website', venueData.website || '');
+    
+    // Log form value after setting
+    console.log("Form description value after setting:", form.getValues('description'));
     
     // Handle images from API
     if (venueData.images && venueData.images.length > 0) {
@@ -109,12 +126,16 @@ export default function AddVenueForm() {
         });
       }
     }
+
+    console.log("THE VENUE DATA", venueData)
   };
 
   const onSubmit = async (data: VenueFormValues) => {
     try {
       setIsSubmitting(true)
       const formData = new FormData()
+
+      console.log("THE DATA", data)
       
       // Add regular form fields
       Object.entries(data).forEach(([key, value]) => {
@@ -137,6 +158,8 @@ export default function AddVenueForm() {
         title: "Success",
         description: "Venue added successfully!"
       })
+
+      console.log("THEE INSERTED VENUE", insertedVenue)
       
       // Redirect to the venue page using the venue name
       if (insertedVenue && insertedVenue.name) {
@@ -207,7 +230,52 @@ export default function AddVenueForm() {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder="Enter venue description" />
+                <TagInput 
+                  value={field.value} 
+                  onChange={(value) => field.onChange(Array.isArray(value) ? value : [value])} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="contact_phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Enter contact phone number" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="contact_email" 
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input {...field} type="email" placeholder="Enter contact email" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="contact_website"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Website</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Enter venue website" />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -31,6 +31,9 @@ const mapPlaceToVenue = async (place: any): Promise<CreateVenue> => {
     throw new Error('Missing required venue data');
   }
 
+  const placeTypes = place.types || [];
+  const description = placeTypes;
+  console.log("THE DESCRIPTION", description);
   const imageUrls = place.photos
     ?.slice(0, 8)
     .map((photo: any) => {
@@ -45,7 +48,7 @@ const mapPlaceToVenue = async (place: any): Promise<CreateVenue> => {
     name: place.displayName?.text || place.name,
     address: place.formattedAddress,
     rental_rate_per_hour: 0,
-    description: place.editorial_summary?.overview || '',
+    description: description,
     images: imageUrls,
     phone: place.formatted_phone_number || '',
     email: '',
@@ -53,6 +56,7 @@ const mapPlaceToVenue = async (place: any): Promise<CreateVenue> => {
     zip_code: place.address_components?.find((c: any) => c.types.includes('postal_code'))?.long_name || '',
     city: place.address_components?.find((c: any) => c.types.includes('locality'))?.long_name || '',
     is_active: true,
+    capacity: 0,
   };
 };
 
@@ -104,6 +108,8 @@ export default function PlaceSearch({ onPlaceSelect, className }: PlaceSearchPro
         formattedAddress: placeDetails.formattedAddress || place.formatted_address
       };
       
+      console.log("THE COMBINED PLACE DATA", combinedPlaceData);
+
       // Map the place to venue format
       const venueData = await mapPlaceToVenue(combinedPlaceData);
       console.log("Mapped venue data:", venueData);

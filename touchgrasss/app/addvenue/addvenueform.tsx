@@ -162,8 +162,8 @@ export default function AddVenueForm() {
       console.log("THEE INSERTED VENUE", insertedVenue)
       
       // Redirect to the venue page using the venue name
-      if (insertedVenue && insertedVenue.name) {
-        router.push(`/venues/${encodeURIComponent(insertedVenue.name)}`)
+      if (insertedVenue && insertedVenue[0].name) {
+        router.push(`/venues/${encodeURIComponent(insertedVenue[0].name)}`)
       }
       
       form.reset()
@@ -261,7 +261,12 @@ export default function AddVenueForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input {...field} type="email" placeholder="Enter contact email" />
+                <Input 
+                  {...field} 
+                  type="email" 
+                  value={field.value || ''} 
+                  placeholder="Enter contact email" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

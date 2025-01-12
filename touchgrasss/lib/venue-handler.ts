@@ -1,35 +1,32 @@
 import { supabase } from './supabase'
+import { Venue, CreateVenue } from '@/app/types/venue'
 
-// Define the Venue interface to match your database structure
-interface Venue {
-  name: string;
-  address: string;
-  description: string | null;
-  capacity: number;
-  rental_rate_per_hour: number;
-  contact_phone?: string | null;
-  contact_email?: string | null;
-  contact_website?: string | null;
-  amenities?: string[];
-}
+// Parse FormData into a CreateVenue object (omits id and created_at as per the type)
+export function parseFormDataToVenue(formData: FormData): CreateVenue {
+  // Get description array and convert to comma-separated string
+  const description = formData.get('description');
+  const descriptionString = Array.isArray(JSON.parse(description as string))
+    ? JSON.parse(description as string).join(',')
+    : description;
 
-// Parse FormData into a Venue object
-export function parseFormDataToVenue(formData: FormData): Venue {
   return {
     name: formData.get('name') as string,
     address: formData.get('address') as string,
-    description: formData.get('description') as string,
+    description: descriptionString,
+    zip_code: '', // You might want to add this to your form
+    city: '', // You might want to add this to your form
     capacity: parseInt(formData.get('capacity') as string),
-    rental_rate_per_hour: parseFloat(formData.get('rental_rate_per_hour') as string) || 0,
-    contact_phone: formData.get('contact_phone') as string,
-    contact_email: formData.get('contact_email') as string,
-    contact_website: formData.get('contact_website') as string,
-    amenities: [], // You might want to handle this separately
+    rental_rate_per_hour: 0, // You might want to add this to your form
+    is_active: true,
+    email: formData.get('contact_email') as string,
+    phone: formData.get('contact_phone') as string,
+    website: formData.get('contact_website') as string,
+    images: [], // This will be handled by the media upload
   };
 }
 
 // Insert venue into Supabase
-export async function insertVenueToSupabase(venue: Venue) {
+export async function insertVenueToSupabase(venue: CreateVenue): Promise<Venue[]> {
   const { data, error } = await supabase
     .from('venues')
     .insert([venue])
@@ -42,7 +39,7 @@ export async function insertVenueToSupabase(venue: Venue) {
 }
 
 // Upload media files to Supabase storage
-async function uploadVenueMediaToSupabase(formData: FormData, venueName: string) {
+async function uploadVenueMediaToSupabase(formData: FormData) {
   const mediaFiles = formData.getAll('media') as File[];
   console.log('Media files:', mediaFiles);
 
@@ -51,7 +48,7 @@ async function uploadVenueMediaToSupabase(formData: FormData, venueName: string)
   for (const file of mediaFiles) {
     const { data, error } = await supabase.storage
       .from('media')
-      .upload(`venues/${venueName}/${crypto.randomUUID()}`, file);
+      .upload(`venues/${formData.get('name')}/${crypto.randomUUID()}`, file);
 
     if (error) {
       throw new Error(`Failed to upload media: ${error.message}`);
@@ -68,16 +65,30 @@ async function uploadVenueMediaToSupabase(formData: FormData, venueName: string)
 export async function handleVenueSubmission(formData: FormData) {
   try {
 
+    const { data, error } = await supabase
+      .from('venues')
+      .insert({
+        name: formData.get('name') as string,
+        address: formData.get('address') as string,
+        description: formData.get('description') as string,
+        zip_code: formData.get('zip_code') as string,
+        city: formData.get('city') as string,
+        rental_rate_per_hour: 0.00,
+        email: formData.get('contact_email') as string,
+        phone: formData.get('contact_phone') as string,
+        website: formData.get('contact_website') as string,
+        capacity: parseInt(formData.get('capacity') as string)
+      })
+      .select()
+
     console.log("THE FORM DATA", formData)
-    const venue = parseFormDataToVenue(formData);
-    const insertedVenue = await insertVenueToSupabase(venue);
     
     if (formData.getAll('media').length > 0) {
-      await uploadVenueMediaToSupabase(formData, insertedVenue[0].name);
+      await uploadVenueMediaToSupabase(formData);
     }
 
-    console.log('Venue inserted successfully:', insertedVenue);
-    return insertedVenue[0]; // Return the full venue object
+    console.log('Venue inserted successfully:', data);
+    return data; // Return the full venue object
   } catch (error) {
     console.error('Error submitting venue:', error);
     throw error;

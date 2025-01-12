@@ -22,9 +22,9 @@ export type CreateVenue = Omit<Venue, 'id' | 'created_at'>;
 export const venueFormSchema = z.object({
     name: z.string().min(2, { message: 'Venue name must be at least 2 characters' }),
     address: z.string().min(5, { message: 'Address must be at least 5 characters' }),
-    description: z.array(z.string()).min(1, { message: 'Add at least one tag to describe the venue' }),
+    description: z.array(z.string()).min(1, { message: 'Add at least one tag to describe the venue' }).optional(),
     capacity: z.number().min(1, { message: 'Capacity must be at least 1' }),
-    contact_email: z.string().email({ message: 'Invalid email address' }),
+    contact_email: z.string().email({ message: 'Invalid email address' }).optional().nullable(),
     contact_phone: z.string().optional(),
     images: z.array(z.instanceof(File)).optional(),
     videos: z.array(z.instanceof(File)).optional(),

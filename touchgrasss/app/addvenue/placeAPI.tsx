@@ -40,9 +40,13 @@ const mapPlaceToVenue = async (place: any): Promise<CreateVenue> => {
       return `https://places.googleapis.com/v1/${photo.name}/media?maxWidthPx=800&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
     }) || [];
 
-  // Create timestamp with explicit UTC handling
-  const timestamp = new Date().toLocaleString('en-US', { timeZone: 'UTC' });
-  const utcDate = new Date(timestamp);
+  // Create timestamp with UTC offset in minutes
+  const now = new Date();
+  const timestamp = now.toLocaleString('en-US', { 
+    timeZone: 'UTC',
+    timeZoneName: 'short',
+    hour12: false
+  });
 
   return {
     name: place.displayName?.text || place.name,
